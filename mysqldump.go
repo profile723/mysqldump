@@ -344,6 +344,14 @@ func writeTableData(db *sql.DB, table string, buf *bufio.Writer) error {
 					}
 				case "JSON":
 					ssql += fmt.Sprintf("'%s'", col)
+				case "GEOMETRY", "POINT", "LINESTRING", "POLYGON", "MULTIPOINT", "MULTILINESTRING", "MULTIPOLYGON", "GEOMETRYCOLLECTION":
+					// Handle geometric type data
+					if bs, ok := col.([]byte); ok {
+						// Convert WKB format to WKT format
+						ssql += fmt.Sprintf("ST_GeomFromWKB(0x%X)", bs)
+					} else {
+						ssql += fmt.Sprintf("'%s'", col)
+					}
 				default:
 					// unsupported type
 					log.Printf("unsupported type: %s", Type)
